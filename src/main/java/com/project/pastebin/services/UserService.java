@@ -1,0 +1,62 @@
+package com.project.pastebin.services;
+
+import com.project.pastebin.entities.User;
+import com.project.pastebin.repositories.UserRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Service;
+
+import java.util.Optional;
+
+
+@Service
+@RequiredArgsConstructor
+public class UserService implements UserDetailsService {
+
+    private final UserRepository userRepository;
+
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        return userRepository.findUserByEmail(username).orElseThrow( () -> new UsernameNotFoundException("User with email " + username + " not found"));
+    }
+
+    public void deleteUserByEmail(String email) {
+        Optional<User> userOptional = userRepository.findUserByEmail(email);
+
+        if(userOptional.isPresent()) {
+            User currUser = userOptional.get();
+            UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            String userEmail = userDetails.getUsername();
+            boolean isAdmin = userDetails.getAuthorities().stream()
+                    .anyMatch(role -> role.getAuthority().equals("ROLE_ADMIN"));
+
+            if(isAdmin || currUser.getEmail().equals(userEmail)) {
+                userRepository.deleteUserByEmail(email);
+            } else {
+                throw new AccessDeniedException("You do not have permission to delete this User");
+            }
+        }
+    }
+
+    public Optional<User> updateUserByEmail(String email, User user) {
+        Optional<User> userOptional = userRepository.findUserByEmail(email);
+        if (userOptional.isPresent()) {
+            User updateUser = userOptional.get();
+            updateUser.setEmail(email);
+            updateUser.setPassword(user.getPassword());
+            updateUser.setFirstName(user.getFirstName());
+            updateUser.setLastName(user.getLastName());
+
+            userRepository.save(updateUser);
+            return Optional.of(updateUser);
+        } else {
+            throw new AccessDeniedException("You do not have permission to update another Users");
+            //return Optional.empty();
+        }
+
+    }
+}
