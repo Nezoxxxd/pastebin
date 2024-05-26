@@ -1,8 +1,8 @@
 package com.project.pastebin.controllers;
 
-import com.project.pastebin.auth.AuthenticationRequest;
-import com.project.pastebin.auth.AuthenticationResponse;
-import com.project.pastebin.auth.RegisterRequest;
+import com.project.pastebin.dto.auth.AuthenticationRequest;
+import com.project.pastebin.dto.auth.AuthenticationResponse;
+import com.project.pastebin.dto.auth.RegisterRequest;
 import com.project.pastebin.services.AuthenticationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

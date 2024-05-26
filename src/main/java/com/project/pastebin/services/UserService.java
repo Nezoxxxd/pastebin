@@ -3,7 +3,7 @@ package com.project.pastebin.services;
 import com.project.pastebin.entities.User;
 import com.project.pastebin.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.AccessDeniedException;
+import org.springframework.expression.AccessException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -37,12 +37,16 @@ public class UserService implements UserDetailsService {
             if(isAdmin || currUser.getEmail().equals(userEmail)) {
                 userRepository.deleteUserByEmail(email);
             } else {
-                throw new AccessDeniedException("You do not have permission to delete this User");
+                try {
+                    throw new AccessException("You do not have permission to delete this User");
+                } catch (AccessException e) {
+                    throw new RuntimeException(e);
+                }
             }
         }
     }
 
-    public Optional<User> updateUserByEmail(String email, User user) {
+    public User updateUserByEmail(String email, User user) {
         Optional<User> userOptional = userRepository.findUserByEmail(email);
         if (userOptional.isPresent()) {
             User updateUser = userOptional.get();
@@ -52,10 +56,13 @@ public class UserService implements UserDetailsService {
             updateUser.setLastName(user.getLastName());
 
             userRepository.save(updateUser);
-            return Optional.of(updateUser);
+            return updateUser;
         } else {
-            throw new AccessDeniedException("You do not have permission to update another Users");
-            //return Optional.empty();
+            try {
+                throw new AccessException("You do not have permission to update another Users");
+            } catch (AccessException e) {
+                throw new RuntimeException(e);
+            }
         }
 
     }

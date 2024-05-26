@@ -1,4 +1,4 @@
-package com.project.pastebin.auth;
+package com.project.pastebin.dto.auth;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
